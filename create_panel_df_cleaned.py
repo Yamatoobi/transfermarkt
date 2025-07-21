@@ -26,6 +26,11 @@ panel_df_cleaned["red_cards"] = panel_df_cleaned["red_cards"].fillna(0).astype(i
 # Fill categorical info if desired
 panel_df_cleaned["position"] = panel_df_cleaned["position"].fillna("Unknown")
 
+# Fill missing values with 0 for new columns
+for col in ["defensive_contributions", "starts", "subs", "saves", "penalty_saves"]:
+    if col in panel_df_cleaned.columns:
+        panel_df_cleaned[col] = panel_df_cleaned[col].fillna(0).astype(int)
+
 # Output result
 panel_df_cleaned.to_csv("panel_df_cleaned.csv", index=False)
 print("Cleaned panel_df saved to 'panel_df_cleaned.csv'.")
