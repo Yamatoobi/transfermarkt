@@ -43,9 +43,8 @@ performance_features = ["performance_composite_score", "position_composite_score
 non_performance_features = [
     "age",
     "height_in_cm",
-    # "total_market_value",  # ← 欠損が多いので外す
     "is_big5_league",
-    # "year",  # optionally include as a control
+    # "year",  # include year if needed
 ]
 
 # One-hot encode 'foot'
@@ -79,10 +78,11 @@ print("Coefficients:")
 for name, coef in zip(X.columns, model.coef_):
     print(f"  {name}: {coef:.4f}")
 
-# Optionally, save results
+# save results
 results_df = pd.DataFrame({
     "feature": X.columns,
     "coefficient": model.coef_
 })
+results_df["R2"] = r2  
 results_df.to_csv("market_value_regression_coefficients.csv", index=False)
 print("Saved regression coefficients to 'market_value_regression_coefficients.csv'.")

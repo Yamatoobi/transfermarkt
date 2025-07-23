@@ -43,6 +43,7 @@ non_performance_features = [
     "age",
     "height_in_cm",
     "is_big5_league",
+    # "year",  # include year if needed
 ]
 
 # One-hot encode 'foot'
@@ -77,10 +78,11 @@ print("Coefficients:")
 for name, coef in zip(X.columns, model.coef_):
     print(f"  {name}: {coef:.4f}")
 
-# Optionally, save results
+# save results
 results_df = pd.DataFrame({
     "feature": X.columns,
     "coefficient": model.coef_
 })
+results_df["R2"] = r2 
 results_df.to_csv("transfer_fee_regression_coefficients.csv", index=False)
 print("Saved regression coefficients to 'transfer_fee_regression_coefficients.csv'.")
