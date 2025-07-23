@@ -31,6 +31,12 @@ for col in ["defensive_contributions", "starts", "subs", "saves", "penalty_saves
     if col in panel_df_cleaned.columns:
         panel_df_cleaned[col] = panel_df_cleaned[col].fillna(0).astype(int)
 
+# Add club_id, club name, and total_market_value columns if not already present
+# (Assumes these were added in create_panel_df.py)
+for col in ["club_id", "name", "total_market_value"]:
+    if col not in panel_df_cleaned.columns and col in panel_df.columns:
+        panel_df_cleaned[col] = panel_df[col]
+
 # Output result
 panel_df_cleaned.to_csv("panel_df_cleaned.csv", index=False)
 print("Cleaned panel_df saved to 'panel_df_cleaned.csv'.")
