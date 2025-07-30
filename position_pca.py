@@ -60,9 +60,14 @@ for group_name, positions in position_groups.items():
     # Save the group-level PCA result
     group_df.to_csv(f"pca_outputs_by_position/{group_name}_with_pcs.csv", index=False)
     
-    print(f"{group_name}: PCA complete. Explained variance ratios:")
+    # Print explained variance ratios for PC1~PC5
+    print(f"\n{group_name} PCA Explained Variance Ratios:")
     for i, v in enumerate(pca.explained_variance_ratio_):
-        print(f"  PC{i+1}: {v:.2f}")
+        print(f"  PC{i+1}: {v:.4f}")
+
+    # Print component loadings for PC1~PC5
+    print(f"\n{group_name} PCA Component Loadings:")
+    print(loadings.iloc[:, :5].round(3))  # Show up to PC5, rounded for readability
 
 # Add position-specific PCs and composite scores to panel_with_pca
 combined_df = pd.read_csv("panel_with_pca.csv")

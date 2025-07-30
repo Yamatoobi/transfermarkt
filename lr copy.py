@@ -26,6 +26,11 @@ df = df.merge(
     how="left"
 )
 
+# Create a single position_composite_score column (the non-NaN one for each row)
+df["position_composite_score"] = df[
+    ["Attackers_composite_score", "Midfielders_composite_score", "Defenders_composite_score", "Goalkeepers_composite_score"]
+].bfill(axis=1).iloc[:, 0]
+
 # ========== Add Big5 league flag ==========
 df = df.merge(clubs[["club_id", "domestic_competition_id"]], on="club_id", how="left")
 big5_ids = ["GB1", "ES1", "IT1", "L1", "FR1"]
@@ -39,8 +44,8 @@ top10_countries = ['France', 'Germany', 'Spain', 'Italy', 'Brazil', 'Argentina',
 df["country_group"] = df["country_of_citizenship"].apply(lambda x: "Top10" if x in top10_countries else "Other")
 df = pd.get_dummies(df, columns=["country_group"], drop_first=True)
 
-# ========== 回帰分析（market value, yearなし） ==========
-performance_features = ["performance_composite_score"]  # position_composite_scoreを除去
+# ========== 回帰分析（yearなし） ==========
+performance_features = ["performance_composite_score", "position_composite_score"]
 non_performance_features = [
     "age",
     "height_in_cm",
@@ -77,16 +82,7 @@ results_df["R2"] = r2
 results_df.to_csv("market_value_regression_coefficients.csv", index=False)
 print("Saved regression coefficients to 'market_value_regression_coefficients.csv'.")
 
-# --- statsmodelsでp値を確認 ---
-X_std_const = sm.add_constant(X_std)
-sm_model = sm.OLS(y_std, X_std_const).fit()
-print(sm_model.summary())
-target_vars = ["performance_composite_score"]  # position_composite_scoreを除去
-for var in target_vars:
-    idx = list(X.columns).index(var) + 1
-    print(f"{var}: coef={sm_model.params[idx]:.4f}, p-value={sm_model.pvalues[idx]:.4g}")
-
-# ========== 回帰分析（market value, yearあり） ==========
+# ========== 回帰分析（yearあり） ==========
 features_with_year = features + ["year"]
 df_reg2 = df.dropna(subset=features_with_year + ["market_value_in_eur"])
 X2 = df_reg2[features_with_year]
@@ -115,15 +111,9 @@ results_df2["R2"] = r2_2
 results_df2.to_csv("market_value_regression_coefficients_with_year.csv", index=False)
 print("Saved regression coefficients to 'market_value_regression_coefficients_with_year.csv'.")
 
-# --- statsmodelsでp値を確認（yearあり） ---
-X2_std_const = sm.add_constant(X2_std)
-sm_model2 = sm.OLS(y2_std, X2_std_const).fit()
-print(sm_model2.summary())
-for var in target_vars + ["year"]:
-    idx = list(X2.columns).index(var) + 1
-    print(f"{var}: coef={sm_model2.params[idx]:.4f}, p-value={sm_model2.pvalues[idx]:.4g}")
-
 # ==================== transfer_fee ====================
+# filepath: /Users/yamatoobinata/Downloads/ML/tansfrmarket/lr_transfer_fee.py
+# ここから下をlr_transfer_fee.pyとして保存してもOK
 
 # 1. transfer_fee（yearなし）
 df_reg = df.dropna(subset=features + ["transfer_fee"])
@@ -154,14 +144,6 @@ results_df["R2"] = r2
 results_df.to_csv("transfer_fee_regression_coefficients.csv", index=False)
 print("Saved regression coefficients to 'transfer_fee_regression_coefficients.csv'.")
 
-# --- statsmodelsでp値を確認 ---
-X_std_const = sm.add_constant(X_std)
-sm_model = sm.OLS(y_std, X_std_const).fit()
-print(sm_model.summary())
-for var in target_vars:
-    idx = list(X.columns).index(var) + 1
-    print(f"{var}: coef={sm_model.params[idx]:.4f}, p-value={sm_model.pvalues[idx]:.4g}")
-
 # 2. transfer_fee（yearあり）
 df_reg2 = df.dropna(subset=features_with_year + ["transfer_fee"])
 df_reg2 = df_reg2[df_reg2["transfer_fee"] > 0]
@@ -190,11 +172,3 @@ results_df2 = pd.DataFrame({
 results_df2["R2"] = r2_2
 results_df2.to_csv("transfer_fee_regression_coefficients_with_year.csv", index=False)
 print("Saved regression coefficients to 'transfer_fee_regression_coefficients_with_year.csv'.")
-
-# --- statsmodelsでp値を確認（yearあり） ---
-X2_std_const = sm.add_constant(X2_std)
-sm_model2 = sm.OLS(y2_std, X2_std_const).fit()
-print(sm_model2.summary())
-for var in target_vars + ["year"]:
-    idx = list(X2.columns).index(var) + 1
-    print(f"{var}: coef={sm_model2.params[idx]:.4f}, p-value={sm_model2.pvalues[idx]:.4g}")
